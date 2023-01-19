@@ -1,34 +1,42 @@
-mod common;
+mod render;
+mod vertex;
 
-use std::borrow::Cow;
-use winit::event_loop::EventLoop;
+use render::Render;
+use winit::{
+    event::{Event, WindowEvent},
+    event_loop::{ControlFlow, EventLoop},
+    window::Window,
+};
 
 fn main() {
-    let mut primitive_type = "triangle-list";
-    let args: Vec<String> = std::env::args().collect();
-    if args.len() > 1 {
-        primitive_type = &args[1];
-    }
-
-    let mut topology = wgpu::PrimitiveTopology::PointList;
-    let mut index_format = None;
-
-    if primitive_type == "triangle-list" {
-        topology = wgpu::PrimitiveTopology::TriangleList;
-        index_format = None;
-    } else if primitive_type == "triangle-strip" {
-        topology = wgpu::PrimitiveTopology::TriangleStrip;
-        index_format = Some(wgpu::IndexFormat::Uint32);
-    }
-    let inputs = common::Inputs {
-        source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl"))),
-        topology: topology,
-        strip_index_format: index_format,
-    };
-
     let event_loop = EventLoop::new();
-    let window = winit::window::Window::new(&event_loop).unwrap();
-    window.set_title(&format!("Primitive {}", primitive_type));
+    let window = Window::new(&event_loop).unwrap();
+    window.set_title("Hello wgpu!");
     env_logger::init();
-    pollster::block_on(common::run(event_loop, window, inputs, 9));
+
+    let mut render = pollster::block_on(Render::new(&window));
+
+    event_loop.run(move |event, _, control_flow| {
+        // let _ = (&instance, &adapter, &shader, &pipeline_layout);
+        *control_flow = ControlFlow::Wait;
+        match event {
+            Event::WindowEvent {
+                event: WindowEvent::Resized(size),
+                ..
+            } => {
+                // Recreate the surface with the new size
+                render.config.width = size.width;
+                render.config.height = size.height;
+                render.surface.configure(&render.device, &render.config);
+            }
+            Event::RedrawRequested(_) => {
+                render.render();
+            }
+            Event::WindowEvent {
+                event: WindowEvent::CloseRequested,
+                ..
+            } => *control_flow = ControlFlow::Exit,
+            _ => {}
+        }
+    });
 }
