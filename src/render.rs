@@ -4,6 +4,7 @@ use crate::vertex::Vertex;
 use bytemuck::cast_slice;
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 use winit::window::Window;
+
 pub struct Render {
     pub surface: wgpu::Surface,
     pub device: wgpu::Device,
@@ -13,6 +14,33 @@ pub struct Render {
     pub pipeline: wgpu::RenderPipeline,
     pub vertex_buffer: wgpu::Buffer,
 }
+
+const VERTICES: &[Vertex] = &[
+    Vertex {
+        position: [-0.5, -0.5],
+        color: [1.0, 0.0, 0.0],
+    },
+    Vertex {
+        position: [0.5, -0.5],
+        color: [0.0, 1.0, 0.0],
+    },
+    Vertex {
+        position: [-0.5, 0.5],
+        color: [1.0, 1.0, 0.0],
+    },
+    Vertex {
+        position: [-0.5, 0.5],
+        color: [1.0, 1.0, 0.0],
+    },
+    Vertex {
+        position: [0.5, -0.5],
+        color: [0.0, 1.0, 0.0],
+    },
+    Vertex {
+        position: [0.5, 0.5],
+        color: [0.0, 0.0, 1.0],
+    },
+];
 
 impl Render {
     pub async fn new(window: &Window) -> Self {
@@ -53,21 +81,6 @@ impl Render {
         surface.configure(&device, &config);
 
         // Create buffers
-
-        const VERTICES: &[Vertex] = &[
-            Vertex {
-                position: [0.0, 0.5],
-                color: [1.0, 0.0, 0.0],
-            },
-            Vertex {
-                position: [-0.5, -0.5],
-                color: [0.0, 1.0, 0.0],
-            },
-            Vertex {
-                position: [0.5, -0.5],
-                color: [0.0, 0.0, 1.0],
-            },
-        ];
 
         let vertex_buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Vertex Buffer"),
@@ -157,7 +170,7 @@ impl Render {
             });
             render_pass.set_pipeline(&self.pipeline);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-            render_pass.draw(0..3, 0..1);
+            render_pass.draw(0..(VERTICES.len() as u32), 0..1);
         }
 
         self.queue.submit(Some(encoder.finish()));
