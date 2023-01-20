@@ -1,3 +1,4 @@
+mod cube;
 mod init_wgpu;
 mod render;
 mod transforms;

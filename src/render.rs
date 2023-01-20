@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+use crate::cube::*;
 use crate::init_wgpu;
 use crate::transforms;
 use crate::vertex::Vertex;
@@ -11,26 +12,34 @@ pub struct Render {
     pub init: init_wgpu::InitWgpu,
     pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
+    index_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
 }
 
-fn create_vertices() -> [Vertex; 300] {
-    let mut vertices = [Vertex {
-        position: [0.0, 0.0, 0.0],
-    }; 300];
-
-    for i in 0..300 {
-        let t = 0.1 * (i as f32) / 30.0;
-        let x = (-t).exp() * (30.0 * t).sin();
-        let z = (-t).exp() * (30.0 * t).cos();
-        let y = 2.0 * t - 1.0;
-        vertices[i] = Vertex {
-            position: [x, y, z],
-        };
+fn vertex(position: [i8; 3], color: [i8; 3]) -> Vertex {
+    Vertex {
+        position: [
+            position[0] as f32,
+            position[1] as f32,
+            position[2] as f32,
+            1.0,
+        ],
+        color: [color[0] as f32, color[1] as f32, color[2] as f32, 1.0],
     }
-
-    vertices
 }
+
+fn create_vertices() -> (Vec<Vertex>, Vec<u16>) {
+    let (position, color, indices) = cube_data();
+
+    let mut data: Vec<Vertex> = Vec::with_capacity(position.len());
+
+    for i in 0..position.len() {
+        data.push(vertex(position[i], color[i]));
+    }
+    (data, indices)
+}
+
+const IS_PERSPECTIVE: bool = true;
 
 impl Render {
     pub async fn new(window: &Window) -> Self {
@@ -38,10 +47,18 @@ impl Render {
 
         // Create buffers
 
+        let (vertex_data, index_data) = create_vertices();
+
         let vertex_buffer = init.device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Vertex Buffer"),
-            contents: cast_slice(&create_vertices()),
+            contents: cast_slice(&vertex_data), // bytemuck::cast_slice()
             usage: wgpu::BufferUsages::VERTEX,
+        });
+
+        let index_buffer = init.device.create_buffer_init(&BufferInitDescriptor {
+            label: Some("Vertex Buffer"),
+            contents: cast_slice(&index_data),
+            usage: wgpu::BufferUsages::INDEX,
         });
 
         // Load the shaders from disk
@@ -55,7 +72,7 @@ impl Render {
 
         // Create uniform buffer
 
-        let camera_position = (1.5, 1.0, 3.0).into();
+        let camera_position = (3.0, 1.5, 3.0).into();
         let look_direction = (0.0, 0.0, 0.0).into();
         let up_direction = cgmath::Vector3::unit_y();
         let model_mat =
@@ -65,7 +82,7 @@ impl Render {
             look_direction,
             up_direction,
             init.config.width as f32 / init.config.height as f32,
-            true,
+            IS_PERSPECTIVE,
         );
         let mvp_mat = view_project_mat * model_mat;
         let mvp_ref: &[f32; 16] = mvp_mat.as_ref();
@@ -134,11 +151,17 @@ impl Render {
                     })],
                 }),
                 primitive: wgpu::PrimitiveState {
-                    topology: wgpu::PrimitiveTopology::LineStrip,
-                    strip_index_format: Some(wgpu::IndexFormat::Uint32),
+                    topology: wgpu::PrimitiveTopology::TriangleStrip,
+                    strip_index_format: None,
                     ..Default::default()
                 },
-                depth_stencil: None,
+                depth_stencil: Some(wgpu::DepthStencilState {
+                    format: wgpu::TextureFormat::Depth24Plus,
+                    depth_write_enabled: true,
+                    depth_compare: wgpu::CompareFunction::LessEqual,
+                    stencil: wgpu::StencilState::default(),
+                    bias: wgpu::DepthBiasState::default(),
+                }),
                 multisample: wgpu::MultisampleState::default(),
                 multiview: None,
             });
@@ -147,6 +170,7 @@ impl Render {
             init,
             pipeline,
             vertex_buffer,
+            index_buffer,
             uniform_bind_group,
         }
     }
@@ -157,6 +181,21 @@ impl Render {
         let view = frame
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
+
+        let depth_texture = self.init.device.create_texture(&wgpu::TextureDescriptor {
+            size: wgpu::Extent3d {
+                width: self.init.config.width,
+                height: self.init.config.height,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth24Plus,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            label: None,
+        });
+        let depth_view = depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
 
         let mut encoder = self
             .init
@@ -178,13 +217,21 @@ impl Render {
                         store: true,
                     },
                 })],
-                depth_stencil_attachment: None,
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &&depth_view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(1.0),
+                        store: false,
+                    }),
+                    stencil_ops: None,
+                }),
             });
             render_pass.set_pipeline(&self.pipeline);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+            render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
             render_pass.set_bind_group(0, &self.uniform_bind_group, &[]);
 
-            render_pass.draw(0..300, 0..1);
+            render_pass.draw_indexed(0..36, 0, 0..1);
         }
 
         self.init.queue.submit(Some(encoder.finish()));
