@@ -1,13 +1,16 @@
 use std::borrow::Cow;
 
+use crate::camera::*;
 use crate::cube::*;
 use crate::init_wgpu;
 use crate::transforms;
 use crate::vertex::Vertex;
+
 use bytemuck::cast_slice;
 use cgmath::Matrix4;
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
-use winit::{event::WindowEvent, window::Window};
+
+use winit::{event::*, window::Window};
 
 pub struct Render {
     pub init: init_wgpu::InitWgpu,
@@ -16,8 +19,12 @@ pub struct Render {
     index_buffer: wgpu::Buffer,
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
-    view_mat: Matrix4<f32>,
+
+    camera: Camera,
+    camera_controller: CameraController,
+
     project_mat: Matrix4<f32>,
+    mouse_pressed: bool,
 }
 
 fn vertex(position: [i8; 3], color: [i8; 3]) -> Vertex {
@@ -75,23 +82,28 @@ impl Render {
                 source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl"))),
             });
 
-        // Create uniform buffer
+        let camera_position = (-5.0, 0.0, 0.0);
+        let yaw = cgmath::Deg(0.0);
+        let pitch = cgmath::Deg(0.0);
+        let speed = 0.005;
 
-        let camera_position = (3.0, 1.5, 3.0).into();
-        let look_direction = (0.0, 0.0, 0.0).into();
-        let up_direction = cgmath::Vector3::unit_y();
+        let camera = Camera::new(camera_position, yaw, pitch);
+        let camera_controller = CameraController::new(speed);
+
         let model_mat =
             transforms::create_transforms([0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
 
-        let view_mat = transforms::create_view(camera_position, look_direction, up_direction);
+        let view_mat = camera.view_mat();
+
         let project_mat = transforms::create_projection(
             init.config.width as f32 / init.config.height as f32,
             IS_PERSPECTIVE,
         );
-        let view_project_mat = project_mat * view_mat;
 
-        let mvp_mat = view_project_mat * model_mat;
+        let mvp_mat = project_mat * view_mat * model_mat;
         let mvp_ref: &[f32; 16] = mvp_mat.as_ref();
+
+        // Create uniform buffer
 
         let uniform_buffer = init.device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Uniform Buffer"),
@@ -179,8 +191,10 @@ impl Render {
             index_buffer,
             uniform_buffer,
             uniform_bind_group,
-            view_mat,
+            camera,
+            camera_controller,
             project_mat,
+            mouse_pressed: false,
         }
     }
 
@@ -252,13 +266,16 @@ impl Render {
     pub fn update(&mut self, dt: std::time::Duration) {
         let dt = ANIMATION_SPEED * dt.as_secs_f32();
 
+        self.camera_controller.update_camera(&mut self.camera);
+
         let translation = [0.0, 0.0, 0.0];
         let rotation = [dt.sin(), dt.cos(), 0.0];
         let scaling = [1.0, 1.0, 1.0];
 
         let model_mat = transforms::create_transforms(translation, rotation, scaling);
+        let view_mat = self.camera.view_mat();
 
-        let mvp_mat = self.project_mat * self.view_mat * model_mat;
+        let mvp_mat = self.project_mat * view_mat * model_mat;
         let mvp_ref: &[f32; 16] = mvp_mat.as_ref();
         self.init
             .queue
@@ -274,7 +291,22 @@ impl Render {
             .configure(&self.init.device, &self.init.config);
     }
 
-    pub fn input(&self, event: &WindowEvent) -> bool {
-        false
+    pub fn input(&mut self, event: &DeviceEvent) -> bool {
+        match event {
+            DeviceEvent::Button {
+                button: 1, // Left Mouse Button
+                state,
+            } => {
+                self.mouse_pressed = *state == ElementState::Pressed;
+                true
+            }
+            DeviceEvent::MouseMotion { delta } => {
+                if self.mouse_pressed {
+                    self.camera_controller.mouse_move(delta.0, delta.1);
+                }
+                true
+            }
+            _ => false,
+        }
     }
 }
