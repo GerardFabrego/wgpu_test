@@ -1,9 +1,11 @@
+mod init_wgpu;
 mod render;
+mod transforms;
 mod vertex;
 
 use render::Render;
 use winit::{
-    event::{Event, WindowEvent},
+    event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
@@ -17,25 +19,42 @@ fn main() {
     let mut render = pollster::block_on(Render::new(&window));
 
     event_loop.run(move |event, _, control_flow| {
-        // let _ = (&instance, &adapter, &shader, &pipeline_layout);
         *control_flow = ControlFlow::Wait;
         match event {
             Event::WindowEvent {
-                event: WindowEvent::Resized(size),
-                ..
-            } => {
-                // Recreate the surface with the new size
-                render.config.width = size.width;
-                render.config.height = size.height;
-                render.surface.configure(&render.device, &render.config);
+                ref event,
+                window_id,
+            } if window_id == window.id() => {
+                if !render.input(event) {
+                    match event {
+                        WindowEvent::CloseRequested
+                        | WindowEvent::KeyboardInput {
+                            input:
+                                KeyboardInput {
+                                    state: ElementState::Pressed,
+                                    virtual_keycode: Some(VirtualKeyCode::Escape),
+                                    ..
+                                },
+                            ..
+                        } => *control_flow = ControlFlow::Exit,
+                        WindowEvent::Resized(physical_size) => {
+                            render.resize(*physical_size);
+                        }
+                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                            render.resize(**new_inner_size);
+                        }
+                        _ => {}
+                    };
+                }
             }
             Event::RedrawRequested(_) => {
-                render.render();
+                render.update();
+                match render.render() {
+                    Ok(_) => {}
+                    Err(e) => eprintln!("{:?}", e),
+                }
             }
-            Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                ..
-            } => *control_flow = ControlFlow::Exit,
+            Event::MainEventsCleared => window.request_redraw(),
             _ => {}
         }
     });
