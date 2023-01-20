@@ -19,6 +19,8 @@ fn main() {
 
     let mut render = pollster::block_on(Render::new(&window));
 
+    let render_start_time = std::time::Instant::now();
+
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
         match event {
@@ -49,7 +51,10 @@ fn main() {
                 }
             }
             Event::RedrawRequested(_) => {
-                render.update();
+                let now = std::time::Instant::now();
+                let dt = now - render_start_time;
+
+                render.update(dt);
                 match render.render() {
                     Ok(_) => {}
                     Err(e) => eprintln!("{:?}", e),

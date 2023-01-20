@@ -40,7 +40,7 @@ pub fn create_view_projection(
     (view_matrix, project_matrix, view_project_matrix)
 }
 
-fn create_view(
+pub fn create_view(
     camera_position: Point3<f32>,
     look_direction: Point3<f32>,
     up_direction: Vector3<f32>,
@@ -48,7 +48,7 @@ fn create_view(
     Matrix4::look_at_rh(camera_position, look_direction, up_direction)
 }
 
-fn create_projection(aspect: f32, is_perspective: bool) -> Matrix4<f32> {
+pub fn create_projection(aspect: f32, is_perspective: bool) -> Matrix4<f32> {
     if is_perspective {
         OPENGL_TO_WGPU_MATRIX * perspective(Rad(2.0 * PI / 5.0), aspect, 0.1, 100.0)
     } else {

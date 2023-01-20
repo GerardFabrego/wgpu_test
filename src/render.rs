@@ -5,6 +5,7 @@ use crate::init_wgpu;
 use crate::transforms;
 use crate::vertex::Vertex;
 use bytemuck::cast_slice;
+use cgmath::Matrix4;
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 use winit::{event::WindowEvent, window::Window};
 
@@ -13,7 +14,10 @@ pub struct Render {
     pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
+    uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
+    view_mat: Matrix4<f32>,
+    project_mat: Matrix4<f32>,
 }
 
 fn vertex(position: [i8; 3], color: [i8; 3]) -> Vertex {
@@ -40,6 +44,7 @@ fn create_vertices() -> (Vec<Vertex>, Vec<u16>) {
 }
 
 const IS_PERSPECTIVE: bool = true;
+const ANIMATION_SPEED: f32 = 1.0;
 
 impl Render {
     pub async fn new(window: &Window) -> Self {
@@ -77,13 +82,14 @@ impl Render {
         let up_direction = cgmath::Vector3::unit_y();
         let model_mat =
             transforms::create_transforms([0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
-        let (_, _, view_project_mat) = transforms::create_view_projection(
-            camera_position,
-            look_direction,
-            up_direction,
+
+        let view_mat = transforms::create_view(camera_position, look_direction, up_direction);
+        let project_mat = transforms::create_projection(
             init.config.width as f32 / init.config.height as f32,
             IS_PERSPECTIVE,
         );
+        let view_project_mat = project_mat * view_mat;
+
         let mvp_mat = view_project_mat * model_mat;
         let mvp_ref: &[f32; 16] = mvp_mat.as_ref();
 
@@ -171,7 +177,10 @@ impl Render {
             pipeline,
             vertex_buffer,
             index_buffer,
+            uniform_buffer,
             uniform_bind_group,
+            view_mat,
+            project_mat,
         }
     }
 
@@ -240,7 +249,21 @@ impl Render {
         Ok(())
     }
 
-    pub fn update(&mut self) {}
+    pub fn update(&mut self, dt: std::time::Duration) {
+        let dt = ANIMATION_SPEED * dt.as_secs_f32();
+
+        let translation = [0.0, 0.0, 0.0];
+        let rotation = [dt.sin(), dt.cos(), 0.0];
+        let scaling = [1.0, 1.0, 1.0];
+
+        let model_mat = transforms::create_transforms(translation, rotation, scaling);
+
+        let mvp_mat = self.project_mat * self.view_mat * model_mat;
+        let mvp_ref: &[f32; 16] = mvp_mat.as_ref();
+        self.init
+            .queue
+            .write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(mvp_ref))
+    }
 
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         self.init.size = new_size;
