@@ -52,6 +52,6 @@ pub fn create_projection(aspect: f32, is_perspective: bool) -> Matrix4<f32> {
     if is_perspective {
         OPENGL_TO_WGPU_MATRIX * perspective(Rad(2.0 * PI / 5.0), aspect, 0.1, 100.0)
     } else {
-        OPENGL_TO_WGPU_MATRIX * ortho(-4.0, 4.0, -3.0, 3.0, -1.0, 6.0)
+        OPENGL_TO_WGPU_MATRIX * ortho(-4.0, 4.0, -3.0, 3.0, -1.0, 8.0)
     }
 }

@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
 use crate::camera::*;
-use crate::cube::*;
 use crate::init_wgpu;
 use crate::transforms;
 use crate::vertex::Vertex;
@@ -16,7 +15,7 @@ pub struct Render {
     init: init_wgpu::InitWgpu,
     pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
-    index_buffer: wgpu::Buffer,
+    // index_buffer: wgpu::Buffer,
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
 
@@ -27,28 +26,26 @@ pub struct Render {
     mouse_pressed: bool,
 }
 
-const IS_PERSPECTIVE: bool = true;
+const IS_PERSPECTIVE: bool = false;
 const ANIMATION_SPEED: f32 = 1.0;
 
 impl Render {
-    pub async fn new(window: &Window, mesh_data: (&Vec<Vertex>, &Vec<u16>)) -> Self {
+    pub async fn new(window: &Window, mesh_data: &Vec<Vertex>) -> Self {
         let init = init_wgpu::InitWgpu::init_wgpu(window).await;
 
         // Create buffers
 
-        let (vertex_data, index_data) = mesh_data;
-
         let vertex_buffer = init.device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Vertex Buffer"),
-            contents: cast_slice(&vertex_data), // bytemuck::cast_slice()
+            contents: cast_slice(&mesh_data), // bytemuck::cast_slice()
             usage: wgpu::BufferUsages::VERTEX,
         });
 
-        let index_buffer = init.device.create_buffer_init(&BufferInitDescriptor {
-            label: Some("Vertex Buffer"),
-            contents: cast_slice(&index_data),
-            usage: wgpu::BufferUsages::INDEX,
-        });
+        // let index_buffer = init.device.create_buffer_init(&BufferInitDescriptor {
+        //     label: Some("Vertex Buffer"),
+        //     contents: cast_slice(&index_data),
+        //     usage: wgpu::BufferUsages::INDEX,
+        // });
 
         // Load the shaders from disk
 
@@ -146,7 +143,7 @@ impl Render {
                     })],
                 }),
                 primitive: wgpu::PrimitiveState {
-                    topology: wgpu::PrimitiveTopology::TriangleStrip,
+                    topology: wgpu::PrimitiveTopology::LineList,
                     strip_index_format: None,
                     ..Default::default()
                 },
@@ -165,7 +162,7 @@ impl Render {
             init,
             pipeline,
             vertex_buffer,
-            index_buffer,
+            // index_buffer,
             uniform_buffer,
             uniform_bind_group,
             camera,
@@ -209,9 +206,9 @@ impl Render {
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.2,
-                            g: 0.247,
-                            b: 0.314,
+                            r: 1.0,
+                            g: 1.0,
+                            b: 1.0,
                             a: 1.0,
                         }),
                         store: true,
@@ -228,10 +225,10 @@ impl Render {
             });
             render_pass.set_pipeline(&self.pipeline);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-            render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+            // render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
             render_pass.set_bind_group(0, &self.uniform_bind_group, &[]);
 
-            render_pass.draw_indexed(0..36, 0, 0..1);
+            render_pass.draw(0..24, 0..1);
         }
 
         self.init.queue.submit(Some(encoder.finish()));

@@ -5,7 +5,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
-pub fn run(mesh_data: (&Vec<Vertex>, &Vec<u16>)) {
+pub fn run(mesh_data: &Vec<Vertex>) {
     let event_loop = EventLoop::new();
     let window = Window::new(&event_loop).unwrap();
     window.set_title("Hello wgpu!");

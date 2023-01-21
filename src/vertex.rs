@@ -4,7 +4,7 @@ use bytemuck::{Pod, Zeroable};
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct Vertex {
     pub position: [f32; 4],
-    pub color: [f32; 4],
+    // pub color: [f32; 4],
 }
 
 impl Vertex {
@@ -25,5 +25,17 @@ impl Vertex {
                 },
             ],
         }
+    }
+}
+
+pub fn vertex(position: [f32; 3]) -> Vertex {
+    Vertex {
+        position: [
+            position[0] as f32,
+            position[1] as f32,
+            position[2] as f32,
+            1.0,
+        ],
+        // color: [color[0] as f32, color[1] as f32, color[2] as f32, 1.0],
     }
 }

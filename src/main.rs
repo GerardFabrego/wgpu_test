@@ -6,34 +6,34 @@ mod render;
 mod transforms;
 mod vertex;
 
-use cube::cube_data;
-use vertex::Vertex;
+use vertex::*;
 
 fn main() {
-    fn vertex(position: [i8; 3], color: [i8; 3]) -> Vertex {
-        Vertex {
-            position: [
-                position[0] as f32,
-                position[1] as f32,
-                position[2] as f32,
-                1.0,
-            ],
-            color: [color[0] as f32, color[1] as f32, color[2] as f32, 1.0],
+    fn create_vertices() -> Vec<Vertex> {
+        let p: [[f32; 3]; 8] = [
+            [-1.0, 1.0, 1.0],
+            [-1.0, 1.0, -1.0],
+            [1.0, 1.0, -1.0],
+            [1.0, 1.0, 1.0],
+            [-1.0, -1.0, 1.0],
+            [-1.0, -1.0, -1.0],
+            [1.0, -1.0, -1.0],
+            [1.0, -1.0, 1.0],
+        ];
+
+        // line segments
+        let lines: [[f32; 3]; 24] = [
+            // 4 lines on top face
+            p[0], p[1], p[1], p[2], p[2], p[3], p[3], p[0], // 4 lines on bottom race
+            p[4], p[5], p[5], p[6], p[6], p[7], p[7], p[4], // 4 lines on sides
+            p[0], p[4], p[1], p[5], p[2], p[6], p[3], p[7],
+        ];
+        let mut data: Vec<Vertex> = Vec::with_capacity(lines.len());
+        for i in 0..lines.len() {
+            data.push(vertex(lines[i]));
         }
+        data.to_vec()
     }
 
-    fn create_vertices() -> (Vec<Vertex>, Vec<u16>) {
-        let (position, color, indices) = cube_data();
-
-        let mut data: Vec<Vertex> = Vec::with_capacity(position.len());
-
-        for i in 0..position.len() {
-            data.push(vertex(position[i], color[i]));
-        }
-        (data, indices)
-    }
-
-    let (vertices, indices) = create_vertices();
-
-    common::run((&vertices, &indices));
+    common::run(&(create_vertices()));
 }
