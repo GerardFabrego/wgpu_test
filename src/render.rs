@@ -13,7 +13,7 @@ use wgpu::util::{BufferInitDescriptor, DeviceExt};
 use winit::{event::*, window::Window};
 
 pub struct Render {
-    pub init: init_wgpu::InitWgpu,
+    init: init_wgpu::InitWgpu,
     pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
@@ -27,39 +27,16 @@ pub struct Render {
     mouse_pressed: bool,
 }
 
-fn vertex(position: [i8; 3], color: [i8; 3]) -> Vertex {
-    Vertex {
-        position: [
-            position[0] as f32,
-            position[1] as f32,
-            position[2] as f32,
-            1.0,
-        ],
-        color: [color[0] as f32, color[1] as f32, color[2] as f32, 1.0],
-    }
-}
-
-fn create_vertices() -> (Vec<Vertex>, Vec<u16>) {
-    let (position, color, indices) = cube_data();
-
-    let mut data: Vec<Vertex> = Vec::with_capacity(position.len());
-
-    for i in 0..position.len() {
-        data.push(vertex(position[i], color[i]));
-    }
-    (data, indices)
-}
-
 const IS_PERSPECTIVE: bool = true;
 const ANIMATION_SPEED: f32 = 1.0;
 
 impl Render {
-    pub async fn new(window: &Window) -> Self {
+    pub async fn new(window: &Window, mesh_data: (&Vec<Vertex>, &Vec<u16>)) -> Self {
         let init = init_wgpu::InitWgpu::init_wgpu(window).await;
 
         // Create buffers
 
-        let (vertex_data, index_data) = create_vertices();
+        let (vertex_data, index_data) = mesh_data;
 
         let vertex_buffer = init.device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Vertex Buffer"),
