@@ -68,13 +68,13 @@ fn create_sphere_wireframe(r: f32, u: u32, v: u32) -> Vec<Vertex> {
     points
 }
 
-fn create_cylinder_wireframe(r_in: f32, r_out: f32, height: f32, n: usize) -> Vec<Vertex> {
-    fn cylinder_position(r: f32, y: f32, theta: Deg<f32>) -> [f32; 3] {
-        let x = r * theta.cos();
-        let z = -r * theta.sin();
-        [x, y, z]
-    }
+fn cylinder_position(r: f32, y: f32, theta: Deg<f32>) -> [f32; 3] {
+    let x = r * theta.cos();
+    let z = -r * theta.sin();
+    [x, y, z]
+}
 
+fn create_cylinder_wireframe(r_in: f32, r_out: f32, height: f32, n: usize) -> Vec<Vertex> {
     let h = height / 2.0;
     let mut points: Vec<Vertex> = Vec::with_capacity(16 * (n - 1));
 
@@ -112,7 +112,35 @@ fn create_cylinder_wireframe(r_in: f32, r_out: f32, height: f32, n: usize) -> Ve
     points
 }
 
+fn create_cone_wireframe(r_up: f32, r_down: f32, height: f32, n: usize) -> Vec<Vertex> {
+    let h = height / 2.0;
+    let mut points: Vec<Vertex> = Vec::with_capacity(16 * (n - 1));
+
+    let inner_down = cylinder_position(0.0, -h, Deg(0.0));
+    let inner_up = cylinder_position(0.0, h, Deg(0.0));
+    for i in 0..(n - 1) {
+        let theta = i as f32 * 360.0 / (n as f32 - 1.0);
+        let theta_diff = (i + 1) as f32 * 360.0 / (n as f32 - 1.0);
+
+        let outer_up = cylinder_position(r_up, h, Deg(theta));
+        let outer_down = cylinder_position(r_down, -h, Deg(theta));
+        let outer_up_diff = cylinder_position(r_up, h, Deg(theta_diff));
+        let outer_down_diff = cylinder_position(r_down, -h, Deg(theta_diff));
+
+        points.push(vertex(inner_down));
+        points.push(vertex(outer_down));
+        points.push(vertex(inner_up));
+        points.push(vertex(outer_up));
+        points.push(vertex(outer_down));
+        points.push(vertex(outer_down_diff));
+        points.push(vertex(outer_up));
+        points.push(vertex(outer_up_diff));
+        points.push(vertex(outer_down));
+        points.push(vertex(outer_up));
+    }
+    points
+}
 fn main() {
-    let mesh = create_cylinder_wireframe(0.2, 1.0, 2.5, 20);
+    let mesh = create_cone_wireframe(0.2, 1.0, 2.5, 20);
     common::run(&mesh);
 }
