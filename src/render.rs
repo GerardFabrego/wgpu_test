@@ -19,6 +19,7 @@ pub struct Render {
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
 
+    num_vertices: u32,
     camera: Camera,
     camera_controller: CameraController,
 
@@ -26,7 +27,7 @@ pub struct Render {
     mouse_pressed: bool,
 }
 
-const IS_PERSPECTIVE: bool = false;
+const IS_PERSPECTIVE: bool = true;
 const ANIMATION_SPEED: f32 = 1.0;
 
 impl Render {
@@ -165,6 +166,7 @@ impl Render {
             // index_buffer,
             uniform_buffer,
             uniform_bind_group,
+            num_vertices: mesh_data.len() as u32,
             camera,
             camera_controller,
             project_mat,
@@ -228,7 +230,7 @@ impl Render {
             // render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
             render_pass.set_bind_group(0, &self.uniform_bind_group, &[]);
 
-            render_pass.draw(0..24, 0..1);
+            render_pass.draw(0..self.num_vertices, 0..1);
         }
 
         self.init.queue.submit(Some(encoder.finish()));
