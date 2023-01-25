@@ -1,3 +1,4 @@
+use crate::light::Light;
 use crate::render::Render;
 use crate::vertex::Vertex;
 use winit::{
@@ -5,13 +6,14 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
-pub fn run(mesh_data: &Vec<Vertex>) {
+
+pub fn run(mesh_data: &Vec<Vertex>, light: Light) {
     let event_loop = EventLoop::new();
     let window = Window::new(&event_loop).unwrap();
     window.set_title("Hello wgpu!");
     env_logger::init();
 
-    let mut render = pollster::block_on(Render::new(&window, mesh_data));
+    let mut render = pollster::block_on(Render::new(&window, mesh_data, light));
 
     let render_start_time = std::time::Instant::now();
 
