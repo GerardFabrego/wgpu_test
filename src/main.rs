@@ -8,40 +8,11 @@ mod transforms;
 mod vertex;
 
 use crate::light::light;
-use crate::shapes::sphere::sphere_data;
-use shapes::cube::cube_data;
-use vertex::*;
+use crate::shapes::cone::cone_data;
 use crate::shapes::cylinder::cylinder_data;
-
-
-// fn create_cone_wireframe(r_up: f32, r_down: f32, height: f32, n: usize) -> Vec<Vertex> {
-//     let h = height / 2.0;
-//     let mut points: Vec<Vertex> = Vec::with_capacity(16 * (n - 1));
-
-//     let inner_down = cylinder_position(0.0, -h, Deg(0.0));
-//     let inner_up = cylinder_position(0.0, h, Deg(0.0));
-//     for i in 0..(n - 1) {
-//         let theta = i as f32 * 360.0 / (n as f32 - 1.0);
-//         let theta_diff = (i + 1) as f32 * 360.0 / (n as f32 - 1.0);
-
-//         let outer_up = cylinder_position(r_up, h, Deg(theta));
-//         let outer_down = cylinder_position(r_down, -h, Deg(theta));
-//         let outer_up_diff = cylinder_position(r_up, h, Deg(theta_diff));
-//         let outer_down_diff = cylinder_position(r_down, -h, Deg(theta_diff));
-
-//         points.push(vertex(inner_down));
-//         points.push(vertex(outer_down));
-//         points.push(vertex(inner_up));
-//         points.push(vertex(outer_up));
-//         points.push(vertex(outer_down));
-//         points.push(vertex(outer_down_diff));
-//         points.push(vertex(outer_up));
-//         points.push(vertex(outer_up_diff));
-//         points.push(vertex(outer_down));
-//         points.push(vertex(outer_up));
-//     }
-//     points
-// }
+use shapes::cube::cube_data;
+use shapes::sphere::sphere_data;
+use vertex::*;
 
 // fn create_torus_wireframe(r_torus: f32, r_tube: f32, n_torus: u32, n_tube: u32) -> Vec<Vertex> {
 //     let mut points: Vec<Vertex> = Vec::with_capacity((4 * n_torus * n_tube) as usize);
@@ -74,7 +45,7 @@ use crate::shapes::cylinder::cylinder_data;
 // }
 
 fn create_vertices() -> Vec<Vertex> {
-    let (position, normal, _) = cylinder_data(0.5, 1.5, 3.0, 3);
+    let (position, normal, _) = cone_data(0.0, 1.5, 3.0, 25);
     let mut mesh = Vec::with_capacity(position.len());
     for i in 0..position.len() {
         mesh.push(vertex(position[i], normal[i]))

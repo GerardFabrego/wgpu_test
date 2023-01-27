@@ -120,7 +120,8 @@ pub fn cube_data() -> (Vec<[f32; 3]>, Vec<[f32; 3]>, Vec<[f32; 3]>) {
         [0.0, -1.0, 0.0],
         [0.0, -1.0, 0.0],
         [0.0, -1.0, 0.0],
-    ].to_vec();
+    ]
+    .to_vec();
 
     (positions, normals, colors)
 }
