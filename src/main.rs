@@ -11,50 +11,8 @@ use crate::light::light;
 use crate::shapes::sphere::sphere_data;
 use shapes::cube::cube_data;
 use vertex::*;
+use crate::shapes::cylinder::cylinder_data;
 
-// fn cylinder_position(r: f32, y: f32, theta: Deg<f32>) -> [f32; 3] {
-//     let x = r * theta.cos();
-//     let z = -r * theta.sin();
-//     [x, y, z]
-// }
-
-// fn create_cylinder_wireframe(r_in: f32, r_out: f32, height: f32, n: usize) -> Vec<Vertex> {
-//     let h = height / 2.0;
-//     let mut points: Vec<Vertex> = Vec::with_capacity(16 * (n - 1));
-
-//     for i in 0..(n - 1) {
-//         let theta = i as f32 * 360.0 / (n as f32 - 1.0);
-//         let theta_diff = (i + 1) as f32 * 360.0 / (n as f32 - 1.0);
-
-//         let inner_up = cylinder_position(r_in, h, Deg(theta));
-//         let outer_up = cylinder_position(r_out, h, Deg(theta));
-//         let inner_down = cylinder_position(r_in, -h, Deg(theta));
-//         let outer_down = cylinder_position(r_out, -h, Deg(theta));
-
-//         let inner_up_diff = cylinder_position(r_in, h, Deg(theta_diff));
-//         let outer_up_diff = cylinder_position(r_out, h, Deg(theta_diff));
-//         let inner_down_diff = cylinder_position(r_in, -h, Deg(theta_diff));
-//         let outer_down_diff = cylinder_position(r_out, -h, Deg(theta_diff));
-
-//         points.push(vertex(inner_down));
-//         points.push(vertex(inner_up));
-//         points.push(vertex(inner_down));
-//         points.push(vertex(inner_down_diff));
-//         points.push(vertex(inner_down));
-//         points.push(vertex(outer_down));
-//         points.push(vertex(outer_down));
-//         points.push(vertex(outer_down_diff));
-//         points.push(vertex(outer_down));
-//         points.push(vertex(outer_up));
-//         points.push(vertex(outer_up));
-//         points.push(vertex(outer_up_diff));
-//         points.push(vertex(inner_up));
-//         points.push(vertex(inner_up_diff));
-//         points.push(vertex(inner_up));
-//         points.push(vertex(outer_up));
-//     }
-//     points
-// }
 
 // fn create_cone_wireframe(r_up: f32, r_down: f32, height: f32, n: usize) -> Vec<Vertex> {
 //     let h = height / 2.0;
@@ -116,7 +74,7 @@ use vertex::*;
 // }
 
 fn create_vertices() -> Vec<Vertex> {
-    let (position, normal, _) = sphere_data(1.5, 20, 20);
+    let (position, normal, _) = cylinder_data(0.5, 1.5, 3.0, 3);
     let mut mesh = Vec::with_capacity(position.len());
     for i in 0..position.len() {
         mesh.push(vertex(position[i], normal[i]))
