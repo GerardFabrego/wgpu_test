@@ -23,7 +23,6 @@ pub struct Render {
     num_vertices: u32,
     view_mat: Matrix4<f32>,
     project_mat: Matrix4<f32>,
-
     // mouse_pressed: bool,
 }
 
@@ -245,17 +244,18 @@ impl Render {
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format:wgpu::TextureFormat::Depth24Plus,
+            format: wgpu::TextureFormat::Depth24Plus,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             label: None,
         });
         let depth_view = depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
 
-        let mut encoder = self
-            .init.device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("Render Encoder"),
-            });
+        let mut encoder =
+            self.init
+                .device
+                .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                    label: Some("Render Encoder"),
+                });
 
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -314,17 +314,21 @@ impl Render {
         let view_projection_ref: &[f32; 16] = view_project_mat.as_ref();
         let normal_ref: &[f32; 16] = normal_mat.as_ref();
 
-        self.init
-            .queue
-            .write_buffer(&self.vertex_uniform_buffer, 0, bytemuck::cast_slice(model_ref));
+        self.init.queue.write_buffer(
+            &self.vertex_uniform_buffer,
+            0,
+            bytemuck::cast_slice(model_ref),
+        );
         self.init.queue.write_buffer(
             &self.vertex_uniform_buffer,
             64,
             bytemuck::cast_slice(view_projection_ref),
         );
-        self.init
-            .queue
-            .write_buffer(&self.vertex_uniform_buffer, 128, bytemuck::cast_slice(normal_ref))
+        self.init.queue.write_buffer(
+            &self.vertex_uniform_buffer,
+            128,
+            bytemuck::cast_slice(normal_ref),
+        )
     }
 
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -332,8 +336,13 @@ impl Render {
             self.init.size = new_size;
             self.init.config.width = new_size.width;
             self.init.config.height = new_size.height;
-            self.init.surface.configure(&self.init.device, &self.init.config);
-            self.project_mat = transforms::create_projection(new_size.width as f32 / new_size.height as f32, IS_PERSPECTIVE);
+            self.init
+                .surface
+                .configure(&self.init.device, &self.init.config);
+            self.project_mat = transforms::create_projection(
+                new_size.width as f32 / new_size.height as f32,
+                IS_PERSPECTIVE,
+            );
         }
     }
 

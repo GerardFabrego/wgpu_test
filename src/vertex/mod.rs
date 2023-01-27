@@ -34,14 +34,9 @@ impl Vertex {
     }
 }
 
-pub fn vertex(position: [i8; 3], color: [i8; 3], normal: [i8; 3]) -> Vertex {
+pub fn vertex(position: [f32; 3], normal: [f32; 3]) -> Vertex {
     Vertex {
-        position: [
-            position[0] as f32,
-            position[1] as f32,
-            position[2] as f32,
-            1.0,
-        ],
+        position: [position[0], position[1], position[2], 1.0],
         // color: [color[0] as f32, color[1] as f32, color[2] as f32, 1.0],
         normal: [normal[0] as f32, normal[1] as f32, normal[2] as f32, 1.0],
     }
