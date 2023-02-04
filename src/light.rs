@@ -8,7 +8,7 @@ pub struct Light {
     diffuse_intensity: f32,
     specular_intensity: f32,
     specular_shininess: f32,
-    is_two_side: i32
+    is_two_side: i32,
 }
 
 pub fn light(sc: [f32; 3], ai: f32, di: f32, si: f32, ss: f32, is_two_sized: bool) -> Light {
@@ -18,6 +18,6 @@ pub fn light(sc: [f32; 3], ai: f32, di: f32, si: f32, ss: f32, is_two_sized: boo
         diffuse_intensity: di,
         specular_intensity: si,
         specular_shininess: ss,
-        is_two_side: if is_two_sized {1} else {0}
+        is_two_side: if is_two_sized { 1 } else { 0 },
     }
 }

@@ -1,4 +1,3 @@
-
 pub enum ColorMapSchemes {
     isv,
     hot,
@@ -10,7 +9,7 @@ pub enum ColorMapSchemes {
     bone,
     cooper,
     greys,
-    jet
+    jet,
 }
 
 pub fn colormap_data(colormap_name: &ColorMapSchemes) -> [[f32; 3]; 11] {

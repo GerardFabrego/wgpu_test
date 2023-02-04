@@ -52,14 +52,6 @@ impl Render {
             IS_PERSPECTIVE,
         );
 
-        // let camera_position = (-5.0, 0.0, 0.0);
-        // let yaw = cgmath::Deg(0.0);
-        // let pitch = cgmath::Deg(0.0);
-        // let speed = 0.005;
-        //
-        // let camera = Camera::new(camera_position, yaw, pitch);
-        // let camera_controller = CameraController::new(speed);
-        // create vertex uniform buffer
 
         let vertex_uniform_buffer = init.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Vertex Uniform Buffer"),
