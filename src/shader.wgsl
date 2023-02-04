@@ -19,13 +19,15 @@ struct VertexUniforms {
 
 struct VertexInput {
     @location(0) position: vec4<f32>,
-    @location(1) normal: vec4<f32>
+    @location(1) normal: vec4<f32>,
+    @location(2) color: vec3<f32>
 }
 
 struct VertexOutput {
     @builtin(position) position: vec4<f32>,
     @location(0) v_position: vec4<f32>,
     @location(1) v_normal: vec4<f32>,
+    @location(2) v_color: vec3<f32>
 }
 
 @vertex
@@ -35,6 +37,7 @@ fn vs_main(vertex_input: VertexInput) -> VertexOutput {
     output.position = uniforms.view_project_mat * position;
     output.v_normal = uniforms.normal_mat * vertex_input.normal;
     output.v_position = position;
+    output.v_color = vertex_input.color;
      return output;
 }
 
@@ -55,5 +58,6 @@ fn fs_main(vertex_output: VertexOutput) -> @location(0) vec4<f32> {
      let specular: f32 = light_uniforms.specular_intensity *
         pow(max(dot(N, H),0.0), light_uniforms.specular_shininess);
      let ambient:f32 = light_uniforms.ambient_intensity;
-     return vec4(light_uniforms.color.xyz * (ambient + diffuse) + light_uniforms.specular_color.xyz * specular, 1.0);
+     let final_color = vertex_output.v_color * (ambient + diffuse) + light_uniforms.specular_color.xyz * specular;
+     return vec4(final_color, 1.0);
 }
