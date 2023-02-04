@@ -1,10 +1,10 @@
 struct LightUniforms {
-    color: vec4<f32>,
     specular_color: vec4<f32>,
     ambient_intensity: f32,
     diffuse_intensity :f32,
     specular_intensity: f32,
-    specular_shininess: f32
+    specular_shininess: f32,
+    is_two_side: i32
 }
 
 @group(0) @binding(2) var<uniform> light_uniforms: LightUniforms;
@@ -54,10 +54,21 @@ fn fs_main(vertex_output: VertexOutput) -> @location(0) vec4<f32> {
      let L: vec3<f32> = normalize(frag_uniforms.light_position.xyz - vertex_output.v_position.xyz);
      let V: vec3<f32> = normalize(frag_uniforms.eye_position.xyz - vertex_output.v_position.xyz);
      let H: vec3<f32> = normalize(L + V);
-     let diffuse: f32 = light_uniforms.diffuse_intensity * max(dot(N, L,), 0.0);
-     let specular: f32 = light_uniforms.specular_intensity *
+
+     // front side
+     var diffuse: f32 = light_uniforms.diffuse_intensity * max(dot(N, L,), 0.0);
+     var specular: f32 = light_uniforms.specular_intensity *
         pow(max(dot(N, H),0.0), light_uniforms.specular_shininess);
-     let ambient:f32 = light_uniforms.ambient_intensity;
+
+     // back side
+     if (light_uniforms.is_two_side == 1) {
+         diffuse = diffuse + light_uniforms.diffuse_intensity * max(dot(-N, L), 0.0);
+         specular = specular + light_uniforms.specular_intensity *
+            pow(max (dot(-N, H), 0.0), light_uniforms.specular_shininess);
+     }
+
+     let ambient: f32 = light_uniforms.ambient_intensity;
      let final_color = vertex_output.v_color * (ambient + diffuse) + light_uniforms.specular_color.xyz * specular;
+
      return vec4(final_color, 1.0);
 }

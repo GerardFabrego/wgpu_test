@@ -92,7 +92,7 @@ impl Render {
         // create light uniform buffer
         let light_uniform_buffer = init.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Light Uniform Buffer"),
-            size: 48,
+            size: 36,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
@@ -202,7 +202,6 @@ impl Render {
                 }),
                 primitive: wgpu::PrimitiveState {
                     topology: wgpu::PrimitiveTopology::TriangleList,
-                    cull_mode: Some(wgpu::Face::Back),
                     ..Default::default()
                 },
                 depth_stencil: Some(wgpu::DepthStencilState {
