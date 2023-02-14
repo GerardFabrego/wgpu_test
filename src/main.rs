@@ -21,29 +21,18 @@ use std::mem::size_of_val;
 use crate::colormap::ColorMapSchemes;
 
 fn create_vertices(
-    f: &dyn Fn(f32, f32) -> [f32; 3],
-    colormap_name: &ColorMapSchemes,
-    xmin: f32,
-    xmax: f32,
-    zmin: f32,
-    zmax: f32,
-    nx: usize,
-    nz: usize,
-    scale: f32,
-    scaley: f32,
+    // f: &dyn Fn(f32, f32) -> [f32; 3],
+    // colormap_name: &ColorMapSchemes,
+    // xmin: f32,
+    // xmax: f32,
+    // zmin: f32,
+    // zmax: f32,
+    // nx: usize,
+    // nz: usize,
+    // scale: f32,
+    // scaley: f32,
 ) -> Vec<Vertex> {
-    let (position, normal, color, _, _) = simple_surface_data(
-        f,
-        colormap_name,
-        xmin,
-        xmax,
-        zmin,
-        zmax,
-        nx,
-        nz,
-        scale,
-        scaley,
-    );
+    let (position, normal, color, _) = cube_data();
     // let (position, normal, _) = sphere_data(1.5, 10, 15);
     let mut mesh = Vec::with_capacity(position.len());
     for i in 0..position.len() {
@@ -60,10 +49,10 @@ pub fn sinc(x: f32, z: f32) -> [f32; 3] {
 
 fn main() {
     // Create mesh data
-    let mesh = create_vertices(&sinc, &ColorMapSchemes::autumn, -8.0, 8.0, -8.0, 8.0, 30, 30, 2.0, 0.3);
+    let mesh = create_vertices();
 
     // Create light data
-    let light = light([1.0, 1.0, 0.0], 0.1, 0.6, 0.3, 30.0, false);
+    let light = light([1.0, 1.0, 1.0], 0.1, 0.6, 0.3, 30.0, false);
 
     // println!("{}", size_of_val(&light));
     common::run(&mesh, light);

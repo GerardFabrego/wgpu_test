@@ -5,7 +5,7 @@ use bytemuck::{Pod, Zeroable};
 pub struct Vertex {
     pub position: [f32; 4],
     pub normal: [f32; 4],
-    pub uv: [f32; 4],
+    pub color: [f32; 3],
 }
 
 impl Vertex {
@@ -25,8 +25,8 @@ impl Vertex {
                     shader_location: 1,
                 },
                 wgpu::VertexAttribute {
-                    format: wgpu::VertexFormat::Float32x2,
-                    offset: std::mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
+                    format: wgpu::VertexFormat::Float32x3,
+                    offset: std::mem::size_of::<[f32; 8]>() as wgpu::BufferAddress,
                     shader_location: 2,
                 },
             ],
@@ -34,10 +34,10 @@ impl Vertex {
     }
 }
 
-pub fn vertex(p: [f32; 3], n: [f32; 3], uv: [f32; 3]) -> Vertex {
+pub fn vertex(p: [f32; 3], n: [f32; 3], c: [f32; 3]) -> Vertex {
     Vertex {
         position: [p[0], p[1], p[2], 1.0],
-        normal: [n[0] as f32, n[1] as f32, n[2] as f32, 1.0],
-        uv: [uv[0] as f32, uv[1] as f32, uv[2] as f32, 1.0],
+        normal: [n[0], n[1], n[2], 1.0],
+        color: [c[0], c[1], c[2]],
     }
 }

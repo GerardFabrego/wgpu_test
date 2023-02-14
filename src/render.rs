@@ -63,7 +63,7 @@ impl Render {
         // create fragment uniform buffer
         let fragment_uniform_buffer = init.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Fragment Uniform Buffer"),
-            size: 32,
+            size: 48,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
@@ -84,7 +84,7 @@ impl Render {
         // create light uniform buffer
         let light_uniform_buffer = init.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Light Uniform Buffer"),
-            size: 36,
+            size: 48,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
